@@ -18,28 +18,24 @@
             --success-text: #1d6a3c;
             --error-bg: #fdeaea;
             --error-text: #b12a29;
+            --info-bg: #e2f3fe;
+            --info-text: #0c5460;
+            --loading-bg: #fff3cd;
+            --loading-text: #856404;
             --border-radius: 12px;
             --box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
 
         /* --- ESTILOS GENERALES Y RESETEO --- */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html {
-            font-size: 16px;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { font-size: 16px; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: var(--background-color);
             color: var(--text-color);
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start; /* Cambiado para que el prompt no empuje todo hacia abajo */
             min-height: 100vh;
             padding: 1rem;
         }
@@ -54,138 +50,50 @@
             box-shadow: var(--box-shadow);
             transition: all 0.3s ease-in-out;
         }
-
-        h1 {
-            font-size: clamp(1.8rem, 5vw, 2.5rem); /* Tipografía fluida */
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 2rem;
-        }
+        h1 { font-size: clamp(1.8rem, 5vw, 2.5rem); font-weight: 700; text-align: center; margin-bottom: 2rem; }
 
         /* --- ESCÁNER Y FORMULARIO --- */
-        #scanner-container {
-            width: 100%;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid var(--border-color);
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group {
-            margin-bottom: 1.25rem;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: var(--label-color);
-            font-size: 0.9rem;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 0.8rem 1rem;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 1rem;
-            background-color: #fdfdff;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.2);
-        }
-
-        input[readonly] {
-            background-color: #f0f0f0;
-            cursor: not-allowed;
-        }
+        #scanner-container { width: 100%; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); margin-bottom: 1.5rem; }
+        .form-group { margin-bottom: 1.25rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--label-color); font-size: 0.9rem; }
+        input, select { width: 100%; padding: 0.8rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem; background-color: #fdfdff; transition: border-color 0.2s, box-shadow 0.2s; }
+        input:focus, select:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.2); }
+        input[readonly] { background-color: #f0f0f0; cursor: not-allowed; }
 
         /* --- BOTONES --- */
-        button {
-            width: 100%;
-            padding: 1rem;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.1s;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        button:hover:not(:disabled) {
-            background-color: var(--primary-hover-color);
-            transform: translateY(-2px);
-        }
-
-        button:disabled {
-            background-color: #a0c3e0;
-            cursor: wait;
-        }
+        button { width: 100%; padding: 1rem; background-color: var(--primary-color); color: white; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: background-color 0.3s, transform 0.1s; display: flex; justify-content: center; align-items: center; gap: 0.75rem; }
+        button:hover:not(:disabled) { background-color: var(--primary-hover-color); transform: translateY(-2px); }
+        button:disabled { background-color: #a0c3e0; cursor: wait; }
         
-        /* Spinner de carga para el botón */
-        .spinner {
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.5);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        .spinner { width: 20px; height: 20px; border: 3px solid rgba(255, 255, 255, 0.5); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         /* --- CLASES DE UTILIDAD --- */
-        .hidden {
-            display: none !important;
-        }
+        .hidden { display: none !important; }
         
         /* --- MENSAJES DE FEEDBACK --- */
-        #feedback-message {
-            text-align: center;
-            padding: 1rem;
-            margin-top: 1.5rem;
-            border-radius: 8px;
-            font-weight: 500;
-            animation: fadeIn 0.5s ease-in-out;
-        }
+        #feedback-message { text-align: center; padding: 1rem; margin-top: 1.5rem; border-radius: 8px; font-weight: 500; animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .success { background-color: var(--success-bg); color: var(--success-text); }
+        .error { background-color: var(--error-bg); color: var(--error-text); }
+        .info { background-color: var(--info-bg); color: var(--info-text); }
+        .loading { background-color: var(--loading-bg); color: var(--loading-text); }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .success {
-            background-color: var(--success-bg);
-            color: var(--success-text);
-        }
-        .error {
-            background-color: var(--error-bg);
-            color: var(--error-text);
-        }
-        
-        /* --- MEDIA QUERY PARA PANTALLAS MÁS GRANDES --- */
-        @media (min-width: 768px) {
-            .container {
-                padding: 2.5rem 3rem;
-            }
-        }
+        /* --- ESTILOS PARA EL PROMPT DE VENTA --- */
+        #prompt-container { width: 100%; max-width: 550px; }
+        .sell-prompt { background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); text-align: center; margin-top: 20px; border: 1px solid var(--border-color); }
+        .sell-prompt h3 { margin-bottom: 10px; font-size: 1.2rem; }
+        .sell-prompt p { margin-bottom: 20px; color: var(--label-color); }
+        .sell-buttons { display: flex; flex-direction: column; gap: 10px; }
+        .sell-button { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; color: white; }
+        .sell-button.confirm { background-color: #28a745; } /* Verde para confirmar */
+        .sell-button.cancel { background-color: #6c757d; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>Registrar Producto</h1>
+        <h1>Gestión de Inventario</h1>
 
         <!-- Botón para iniciar el escaneo -->
         <button id="btn-scan">
@@ -199,94 +107,51 @@
         <!-- Mensaje de feedback para el usuario -->
         <div id="feedback-message" class="hidden"></div>
 
+        <!-- Contenedor para el prompt de venta -->
+        <div id="prompt-container"></div>
+
         <!-- Formulario que aparece después de escanear -->
         <form id="product-form" class="hidden">
             <div class="form-group">
                 <label for="imei">IMEI Escaneado</label>
                 <input type="text" id="imei" name="imei" readonly required>
             </div>
-
             <div class="form-group">
                 <label for="modelo">Modelo</label>
                 <select id="modelo" name="modelo" required>
                     <option value="" disabled selected>Selecciona un modelo...</option>
-                    <optgroup label="iPhone 15 Series">
-                        <option value="iPhone 15 Pro Max">iPhone 15 Pro Max</option>
-                        <option value="iPhone 15 Pro">iPhone 15 Pro</option>
-                        <option value="iPhone 15 Plus">iPhone 15 Plus</option>
-                        <option value="iPhone 15">iPhone 15</option>
-                    </optgroup>
-                    <optgroup label="iPhone 14 Series">
-                        <option value="iPhone 14 Pro Max">iPhone 14 Pro Max</option>
-                        <option value="iPhone 14 Pro">iPhone 14 Pro</option>
-                        <option value="iPhone 14 Plus">iPhone 14 Plus</option>
-                        <option value="iPhone 14">iPhone 14</option>
-                    </optgroup>
-                    <optgroup label="iPhone 13 Series">
-                        <option value="iPhone 13 Pro Max">iPhone 13 Pro Max</option>
-                        <option value="iPhone 13 Pro">iPhone 13 Pro</option>
-                        <option value="iPhone 13 Mini">iPhone 13 Mini</option>
-                        <option value="iPhone 13">iPhone 13</option>
-                    </optgroup>
-                    <optgroup label="iPhone 12 Series">
-                        <option value="iPhone 12 Pro Max">iPhone 12 Pro Max</option>
-                        <option value="iPhone 12 Pro">iPhone 12 Pro</option>
-                        <option value="iPhone 12">iPhone 12</option>
-                        <option value="iPhone 12 Mini">iPhone 12 Mini</option>
-                    </optgroup>
-                     <optgroup label="iPhone 11 Series">
-                        <option value="iPhone 11 Pro Max">iPhone 11 Pro Max</option>
-                        <option value="iPhone 11 Pro">iPhone 11 Pro</option>
-                        <option value="iPhone 11">iPhone 11</option>
-                    </optgroup>
+                    <optgroup label="iPhone 15 Series"><option value="iPhone 15 Pro Max">iPhone 15 Pro Max</option><option value="iPhone 15 Pro">iPhone 15 Pro</option><option value="iPhone 15 Plus">iPhone 15 Plus</option><option value="iPhone 15">iPhone 15</option></optgroup>
+                    <optgroup label="iPhone 14 Series"><option value="iPhone 14 Pro Max">iPhone 14 Pro Max</option><option value="iPhone 14 Pro">iPhone 14 Pro</option><option value="iPhone 14 Plus">iPhone 14 Plus</option><option value="iPhone 14">iPhone 14</option></optgroup>
+                    <optgroup label="iPhone 13 Series"><option value="iPhone 13 Pro Max">iPhone 13 Pro Max</option><option value="iPhone 13 Pro">iPhone 13 Pro</option><option value="iPhone 13 Mini">iPhone 13 Mini</option><option value="iPhone 13">iPhone 13</option></optgroup>
+                    <optgroup label="iPhone 12 Series"><option value="iPhone 12 Pro Max">iPhone 12 Pro Max</option><option value="iPhone 12 Pro">iPhone 12 Pro</option><option value="iPhone 12">iPhone 12</option><option value="iPhone 12 Mini">iPhone 12 Mini</option></optgroup>
+                    <optgroup label="iPhone 11 Series"><option value="iPhone 11 Pro Max">iPhone 11 Pro Max</option><option value="iPhone 11 Pro">iPhone 11 Pro</option><option value="iPhone 11">iPhone 11</option></optgroup>
                 </select>
             </div>
-
             <div class="form-group">
                 <label for="bateria">Condición de Batería (%)</label>
                 <input type="number" id="bateria" name="bateria" placeholder="Ej: 89" min="1" max="100" required>
             </div>
-
             <div class="form-group">
                 <label for="color">Color</label>
                 <select id="color" name="color" required>
                     <option value="" disabled selected>Selecciona un color...</option>
-                    <option value="Negro espacial">Negro espacial</option>
-                    <option value="Plata">Plata</option>
-                    <option value="Dorado">Dorado</option>
-                    <option value="Púrpura oscuro">Púrpura oscuro</option>
-                    <option value="Rojo (Product RED)">Rojo (Product RED)</option>
-                    <option value="Azul">Azul</option>
-                    <option value="Verde">Verde</option>
-                    <option value="Blanco estelar">Blanco estelar</option>
-                    <option value="Medianoche">Medianoche</option>
-                    <option value="Titanio Natural">Titanio Natural</option>
-                    <option value="Titanio Azul">Titanio Azul</option>
+                    <option value="Negro espacial">Negro espacial</option><option value="Plata">Plata</option><option value="Dorado">Dorado</option><option value="Púrpura oscuro">Púrpura oscuro</option><option value="Rojo (Product RED)">Rojo (Product RED)</option><option value="Azul">Azul</option><option value="Verde">Verde</option><option value="Blanco estelar">Blanco estelar</option><option value="Medianoche">Medianoche</option><option value="Titanio Natural">Titanio Natural</option><option value="Titanio Azul">Titanio Azul</option>
                 </select>
             </div>
-
             <div class="form-group">
                 <label for="almacenamiento">Almacenamiento</label>
                 <select id="almacenamiento" name="almacenamiento" required>
-                    <option value="" disabled selected>Selecciona el almacenamiento...</option>
-                    <option value="128GB">128 GB</option>
-                    <option value="256GB">256 GB</option>
-                    <option value="512GB">512 GB</option>
-                    <option value="1TB">1 TB</option>
+                    <option value="" disabled selected>Selecciona...</option>
+                    <option value="128GB">128 GB</option><option value="256GB">256 GB</option><option value="512GB">512 GB</option><option value="1TB">1 TB</option>
                 </select>
             </div>
-
             <div class="form-group">
                 <label for="detalles">Detalles Estéticos</label>
                 <select id="detalles" name="detalles" required>
-                    <option value="" disabled selected>Selecciona la condición...</option>
-                    <option value="Como Nuevo (Sin detalles)">Como Nuevo (Sin detalles)</option>
-                    <option value="Excelente (Mínimos detalles)">Excelente (Mínimos detalles)</option>
-                    <option value="Bueno (Detalles de uso visibles)">Bueno (Detalles de uso visibles)</option>
-                    <option value="Regular (Marcas o rayones notorios)">Regular (Marcas o rayones notorios)</option>
+                    <option value="" disabled selected>Selecciona...</option>
+                    <option value="Como Nuevo (Sin detalles)">Como Nuevo (Sin detalles)</option><option value="Excelente (Mínimos detalles)">Excelente (Mínimos detalles)</option><option value="Bueno (Detalles de uso visibles)">Bueno (Detalles de uso visibles)</option><option value="Regular (Marcas o rayones notorios)">Regular (Marcas o rayones notorios)</option>
                 </select>
             </div>
-
             <button type="submit" id="btn-submit">
                 <span id="btn-submit-text">Guardar Producto</span>
                 <div id="btn-spinner" class="spinner hidden"></div>
@@ -296,26 +161,25 @@
 
     <!-- Librerías de terceros (escáner y Firebase) -->
     <script src="https://unpkg.com/html5-qrcode/html5-qrcode.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <script>
-        // --- CONFIGURACIÓN DE FIREBASE (reemplazar con la tuya) ---
+        // --- CONFIGURACIÓN DE FIREBASE (Tus credenciales) ---
         const firebaseConfig = {
-        apiKey: "AIzaSyAG2rhzDqoy_Iq6DlP0osuJjbrwFEtl6n4",
-        authDomain: "tienda-twins.firebaseapp.com",
-        projectId: "tienda-twins",
-        storageBucket: "tienda-twins.firebasestorage.app",
-        messagingSenderId: "331341386452",
-        appId: "1:331341386452:web:1f0c5257beaaccfcf86141",
-        measurementId: "G-QYLGN5ZWX6"
+            apiKey: "AIzaSyAG2rhzDqoy_Iq6DlP0osuJjbrwFEtl6n4",
+            authDomain: "tienda-twins.firebaseapp.com",
+            projectId: "tienda-twins",
+            storageBucket: "tienda-twins.firebasestorage.app",
+            messagingSenderId: "331341386452",
+            appId: "1:331341386452:web:1f0c5257beaaccfcf86141",
+            measurementId: "G-QYLGN5ZWX6"
         };
 
-        // Inicializar Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // --- LÓGICA DE LA APLICACIÓN ---
+        // --- REFERENCIAS AL DOM ---
         const btnScan = document.getElementById('btn-scan');
         const scannerContainer = document.getElementById('scanner-container');
         const productForm = document.getElementById('product-form');
@@ -324,76 +188,168 @@
         const btnSubmit = document.getElementById('btn-submit');
         const btnSubmitText = document.getElementById('btn-submit-text');
         const btnSpinner = document.getElementById('btn-spinner');
-        
-        // Función para mostrar mensajes al usuario
-        function showFeedback(message, type) {
+        const promptContainer = document.getElementById('prompt-container');
+
+        // --- FUNCIONES DE UTILIDAD ---
+        function showFeedback(message, type = 'info') {
             feedbackMessage.textContent = message;
             feedbackMessage.className = `feedback-message ${type}`;
             feedbackMessage.classList.remove('hidden');
-            setTimeout(() => {
-                feedbackMessage.classList.add('hidden');
-                feedbackMessage.className = 'feedback-message hidden';
-            }, 5000);
         }
 
+        function hideFeedback() {
+            feedbackMessage.classList.add('hidden');
+        }
+
+        function resetView() {
+            promptContainer.innerHTML = '';
+            productForm.classList.add('hidden');
+            productForm.reset();
+            btnScan.classList.remove('hidden');
+            scannerContainer.classList.add('hidden');
+            hideFeedback();
+        }
+
+        // --- LÓGICA DEL ESCÁNER ---
         const html5QrCode = new Html5Qrcode("scanner-container");
 
-        const onScanSuccess = (decodedText, decodedResult) => {
-            html5QrCode.stop().then(() => {
-                scannerContainer.classList.add('hidden');
-                imeiInput.value = decodedText;
-                productForm.classList.remove('hidden');
-                productForm.querySelector('select').focus(); // Pone el foco en el primer campo a rellenar
-            }).catch(err => console.error("Error al detener el escáner", err));
-        };
-        
         const onScanFailure = (error) => { /* Ignorar errores de "no encontrado" */ };
-
+        
         btnScan.addEventListener('click', () => {
+            resetView();
             btnScan.classList.add('hidden');
             scannerContainer.classList.remove('hidden');
-            html5QrCode.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 250, height: 150 } },
-                onScanSuccess,
-                onScanFailure
-            ).catch(err => {
-                showFeedback("Error al iniciar la cámara. Asegúrate de dar permisos.", "error");
-                btnScan.classList.remove('hidden');
-                scannerContainer.classList.add('hidden');
-            });
+            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 150 } }, onScanSuccess, onScanFailure)
+                .catch(err => {
+                    showFeedback("Error al iniciar la cámara. Da permisos.", "error");
+                    resetView();
+                });
         });
 
+        // ========================================================================
+        //  NUEVO FLUJO DESPUÉS DE ESCANEAR: VERIFICAR IMEI
+        // ========================================================================
+        const onScanSuccess = async (decodedText, decodedResult) => {
+            const imei = decodedText.trim();
+            
+            await html5QrCode.stop();
+            scannerContainer.classList.add('hidden');
+            showFeedback("Buscando IMEI en el inventario...", "loading");
+            
+            try {
+                const imeiRef = db.collection("imei_inventory").doc(imei);
+                const imeiDoc = await imeiRef.get();
+
+                if (imeiDoc.exists) {
+                    hideFeedback();
+                    const { productPath, unitId } = imeiDoc.data();
+                    promptToSell(imei, productPath, unitId);
+                } else {
+                    hideFeedback();
+                    imeiInput.value = imei;
+                    productForm.classList.remove('hidden');
+                    productForm.querySelector('select').focus();
+                }
+            } catch (error) {
+                console.error("Error buscando IMEI:", error);
+                showFeedback("Error al verificar el inventario.", "error");
+                setTimeout(resetView, 3000);
+            }
+        };
+
+        // --- FUNCIÓN PARA MOSTRAR EL PROMPT DE VENTA ---
+        function promptToSell(imei, productPath, unitId) {
+            promptContainer.innerHTML = `
+                <div class="sell-prompt">
+                    <h3>Este equipo ya está en stock</h3>
+                    <p>IMEI: <strong>${imei}</strong></p>
+                    <p>¿Deseas marcarlo como vendido para quitarlo del inventario?</p>
+                    <div class="sell-buttons">
+                        <button id="btn-confirm-sell" class="sell-button confirm">Sí, Marcar como Vendido</button>
+                        <button id="btn-cancel-sell" class="sell-button cancel">Cancelar</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('btn-confirm-sell').onclick = () => markAsSold(imei, productPath, unitId);
+            document.getElementById('btn-cancel-sell').onclick = resetView;
+        }
+        
+        // --- FUNCIÓN PARA MARCAR COMO VENDIDO (BAJA DE STOCK) ---
+        async function markAsSold(imei, productPath, unitId) {
+            showFeedback("Registrando venta...", "loading");
+            
+            const productRef = db.doc(productPath);
+            const unitRef = productRef.collection("unidades").doc(unitId);
+            const imeiRef = db.collection("imei_inventory").doc(imei);
+
+            try {
+                await db.runTransaction(async (transaction) => {
+                    const productDoc = await transaction.get(productRef);
+                    if (!productDoc.exists) throw "El producto principal no existe.";
+
+                    transaction.delete(unitRef);
+                    transaction.delete(imeiRef);
+                    const newStock = Math.max(0, (productDoc.data().stock || 1) - 1);
+                    transaction.update(productRef, { stock: newStock });
+                });
+                showFeedback(`¡Venta registrada! El equipo ha sido quitado del stock.`, "success");
+            } catch (error) {
+                console.error("Error al marcar como vendido:", error);
+                showFeedback("Error al procesar la venta.", "error");
+            } finally {
+                setTimeout(resetView, 3000);
+            }
+        }
+
+        // --- LÓGICA DE GUARDADO (ALTA DE STOCK) ---
         productForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-
-            // Activar estado de carga en el botón
             btnSubmit.disabled = true;
             btnSubmitText.textContent = 'Guardando...';
             btnSpinner.classList.remove('hidden');
 
             const formData = new FormData(productForm);
-            const phoneData = {
-                imei: formData.get('imei'),
-                modelo: formData.get('modelo'),
+            const imei = formData.get('imei');
+
+            const unitData = {
+                imei: imei,
                 bateria: `${formData.get('bateria')}%`,
-                color: formData.get('color'),
                 almacenamiento: formData.get('almacenamiento'),
                 detalles: formData.get('detalles'),
-                fechaDeCarga: firebase.firestore.FieldValue.serverTimestamp() // Mejor forma de guardar la fecha
+                fechaDeCarga: firebase.firestore.FieldValue.serverTimestamp()
             };
-
+            
+            const modelo = formData.get('modelo').toLowerCase().replace(/\s+/g, '-');
+            const color = formData.get('color').toLowerCase().replace(/\s+/g, '-');
+            const productId = `${modelo}-${color}`;
+            const productRef = db.collection("productos").doc(productId);
+            
             try {
-                await db.collection("iphones").add(phoneData);
-                showFeedback(`¡iPhone ${phoneData.modelo} guardado con éxito!`, 'success');
-                productForm.reset();
-                productForm.classList.add('hidden');
-                btnScan.classList.remove('hidden');
+                const newUnitRef = productRef.collection("unidades").doc();
+                const imeiRef = db.collection("imei_inventory").doc(imei);
+
+                await db.runTransaction(async (transaction) => {
+                    transaction.set(newUnitRef, unitData);
+                    transaction.set(imeiRef, { productPath: productRef.path, unitId: newUnitRef.id });
+
+                    const productDoc = await transaction.get(productRef);
+                    if (!productDoc.exists) {
+                        transaction.set(productRef, {
+                            nombre: formData.get('modelo'),
+                            color: formData.get('color'),
+                            stock: 1
+                        });
+                    } else {
+                        const newStock = (productDoc.data().stock || 0) + 1;
+                        transaction.update(productRef, { stock: newStock });
+                    }
+                });
+
+                showFeedback(`¡Equipo añadido al inventario!`, 'success');
+                setTimeout(resetView, 2000);
             } catch (error) {
-                console.error("Error al añadir el documento: ", error);
-                showFeedback("Hubo un error al guardar los datos.", "error");
-            } finally {
-                // Restaurar el botón a su estado original, ya sea éxito o error
+                console.error("Error al guardar:", error);
+                showFeedback("Error al guardar. Revisa la consola.", "error");
                 btnSubmit.disabled = false;
                 btnSubmitText.textContent = 'Guardar Producto';
                 btnSpinner.classList.add('hidden');
