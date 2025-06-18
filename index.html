@@ -3,102 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Escanear IMEI</title>
+    <title>Escanear IMEI - Inventario</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f0f2f5;
+        /* --- VARIABLES DE CSS PARA UN TEMA FÁCIL DE EDITAR --- */
+        :root {
+            --primary-color: #0071e3;
+            --primary-hover-color: #005bb5;
+            --background-color: #f5f5f7;
+            --container-bg-color: #ffffff;
+            --text-color: #1d1d1f;
+            --label-color: #6e6e73;
+            --border-color: #d2d2d7;
+            --success-bg: #e5f7ed;
+            --success-text: #1d6a3c;
+            --error-bg: #fdeaea;
+            --error-text: #b12a29;
+            --border-radius: 12px;
+            --box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        /* --- ESTILOS GENERALES Y RESETEO --- */
+        * {
             margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-        }
-        .container {
-            background-color: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 500px;
+            padding: 0;
             box-sizing: border-box;
         }
-        h1 {
-            color: #1c1e21;
-            text-align: center;
-            margin-bottom: 25px;
-        }
-        #scanner-container {
-            width: 100%;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: #4b4f56;
-        }
-        input, select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            box-sizing: border-box;
+
+        html {
             font-size: 16px;
         }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        /* --- CONTENEDOR PRINCIPAL --- */
+        .container {
+            width: 100%;
+            max-width: 550px;
+            background-color: var(--container-bg-color);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            transition: all 0.3s ease-in-out;
+        }
+
+        h1 {
+            font-size: clamp(1.8rem, 5vw, 2.5rem); /* Tipografía fluida */
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        /* --- ESCÁNER Y FORMULARIO --- */
+        #scanner-container {
+            width: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--label-color);
+            font-size: 0.9rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: #fdfdff;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.2);
+        }
+
         input[readonly] {
-            background-color: #e9ebee;
+            background-color: #f0f0f0;
             cursor: not-allowed;
         }
+
+        /* --- BOTONES --- */
         button {
             width: 100%;
-            padding: 12px;
-            background-color: #007bff;
+            padding: 1rem;
+            background-color: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 6px;
-            font-size: 18px;
-            font-weight: bold;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, transform 0.1s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.75rem;
         }
-        button:hover {
-            background-color: #0056b3;
+
+        button:hover:not(:disabled) {
+            background-color: var(--primary-hover-color);
+            transform: translateY(-2px);
         }
+
+        button:disabled {
+            background-color: #a0c3e0;
+            cursor: wait;
+        }
+        
+        /* Spinner de carga para el botón */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* --- CLASES DE UTILIDAD --- */
         .hidden {
-            display: none;
+            display: none !important;
         }
+        
+        /* --- MENSAJES DE FEEDBACK --- */
         #feedback-message {
             text-align: center;
-            padding: 10px;
-            margin-top: 15px;
-            border-radius: 6px;
-            font-weight: bold;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            animation: fadeIn 0.5s ease-in-out;
         }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .success {
-            background-color: #d4edda;
-            color: #155724;
+            background-color: var(--success-bg);
+            color: var(--success-text);
         }
         .error {
-            background-color: #f8d7da;
-            color: #721c24;
+            background-color: var(--error-bg);
+            color: var(--error-text);
+        }
+        
+        /* --- MEDIA QUERY PARA PANTALLAS MÁS GRANDES --- */
+        @media (min-width: 768px) {
+            .container {
+                padding: 2.5rem 3rem;
+            }
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>Escanear IMEI</h1>
+        <h1>Registrar Producto</h1>
 
         <!-- Botón para iniciar el escaneo -->
-        <button id="btn-scan">Escanear IMEI con la Cámara</button>
+        <button id="btn-scan">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg>
+            Escanear IMEI
+        </button>
 
         <!-- Contenedor para el video del escáner -->
         <div id="scanner-container" class="hidden"></div>
@@ -167,6 +260,8 @@
                     <option value="Verde">Verde</option>
                     <option value="Blanco estelar">Blanco estelar</option>
                     <option value="Medianoche">Medianoche</option>
+                    <option value="Titanio Natural">Titanio Natural</option>
+                    <option value="Titanio Azul">Titanio Azul</option>
                 </select>
             </div>
 
@@ -192,20 +287,20 @@
                 </select>
             </div>
 
-            <button type="submit">Guardar Producto en Base de Datos</button>
+            <button type="submit" id="btn-submit">
+                <span id="btn-submit-text">Guardar Producto</span>
+                <div id="btn-spinner" class="spinner hidden"></div>
+            </button>
         </form>
     </div>
 
-    <!-- Librería para escanear QR/códigos de barras -->
+    <!-- Librerías de terceros (escáner y Firebase) -->
     <script src="https://unpkg.com/html5-qrcode/html5-qrcode.min.js"></script>
-
-    <!-- Scripts de Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
     <script>
-        // --- CONFIGURACIÓN DE FIREBASE ---
-        // ¡IMPORTANTE! Reemplaza esto con la configuración de tu propio proyecto de Firebase.
+        // --- CONFIGURACIÓN DE FIREBASE (reemplazar con la tuya) ---
         const firebaseConfig = {
             apiKey: "TU_API_KEY",
             authDomain: "TU_AUTH_DOMAIN",
@@ -225,92 +320,82 @@
         const productForm = document.getElementById('product-form');
         const imeiInput = document.getElementById('imei');
         const feedbackMessage = document.getElementById('feedback-message');
+        const btnSubmit = document.getElementById('btn-submit');
+        const btnSubmitText = document.getElementById('btn-submit-text');
+        const btnSpinner = document.getElementById('btn-spinner');
         
         // Función para mostrar mensajes al usuario
         function showFeedback(message, type) {
             feedbackMessage.textContent = message;
-            feedbackMessage.className = `feedback-message ${type}`; // 'success' o 'error'
+            feedbackMessage.className = `feedback-message ${type}`;
             feedbackMessage.classList.remove('hidden');
-            setTimeout(() => feedbackMessage.classList.add('hidden'), 4000);
+            setTimeout(() => {
+                feedbackMessage.classList.add('hidden');
+                feedbackMessage.className = 'feedback-message hidden';
+            }, 5000);
         }
 
-        // Crear una instancia del escáner
         const html5QrCode = new Html5Qrcode("scanner-container");
 
         const onScanSuccess = (decodedText, decodedResult) => {
-            // Cuando el escaneo es exitoso
-            console.log(`Código escaneado: ${decodedText}`);
-            
-            // Detener el escáner
             html5QrCode.stop().then(() => {
                 scannerContainer.classList.add('hidden');
-                
-                // Rellenar el campo IMEI y mostrar el formulario
                 imeiInput.value = decodedText;
                 productForm.classList.remove('hidden');
-
-            }).catch(err => {
-                console.error("Error al detener el escáner", err);
-            });
+                productForm.querySelector('select').focus(); // Pone el foco en el primer campo a rellenar
+            }).catch(err => console.error("Error al detener el escáner", err));
         };
         
-        const onScanFailure = (error) => {
-            // Puedes ignorar los errores comunes de "QR no encontrado"
-            // console.warn(`Error de escaneo = ${error}`);
-        };
+        const onScanFailure = (error) => { /* Ignorar errores de "no encontrado" */ };
 
-        // Evento para el botón de escanear
         btnScan.addEventListener('click', () => {
-            btnScan.classList.add('hidden'); // Ocultar el botón
-            scannerContainer.classList.remove('hidden'); // Mostrar el contenedor del escáner
-
-            // Iniciar el escáner
+            btnScan.classList.add('hidden');
+            scannerContainer.classList.remove('hidden');
             html5QrCode.start(
-                { facingMode: "environment" }, // Usa la cámara trasera del celular
-                {
-                    fps: 10,    // Frames por segundo
-                    qrbox: { width: 250, height: 150 } // Tamaño de la caja de escaneo
-                },
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 150 } },
                 onScanSuccess,
                 onScanFailure
             ).catch(err => {
                 showFeedback("Error al iniciar la cámara. Asegúrate de dar permisos.", "error");
-                console.error("No se pudo iniciar el escáner", err);
                 btnScan.classList.remove('hidden');
                 scannerContainer.classList.add('hidden');
             });
         });
 
-        // Evento para enviar el formulario
         productForm.addEventListener('submit', async (e) => {
-            e.preventDefault(); // Evita que la página se recargue
+            e.preventDefault();
+
+            // Activar estado de carga en el botón
+            btnSubmit.disabled = true;
+            btnSubmitText.textContent = 'Guardando...';
+            btnSpinner.classList.remove('hidden');
 
             const formData = new FormData(productForm);
             const phoneData = {
                 imei: formData.get('imei'),
                 modelo: formData.get('modelo'),
-                bateria: `${formData.get('bateria')}%`, // Añadimos el %
+                bateria: `${formData.get('bateria')}%`,
                 color: formData.get('color'),
                 almacenamiento: formData.get('almacenamiento'),
                 detalles: formData.get('detalles'),
-                fechaDeCarga: new Date() // Guardamos la fecha y hora del registro
+                fechaDeCarga: firebase.firestore.FieldValue.serverTimestamp() // Mejor forma de guardar la fecha
             };
 
             try {
-                // Añadir un nuevo documento a la colección "iphones"
-                const docRef = await db.collection("iphones").add(phoneData);
-                console.log("Documento escrito con ID: ", docRef.id);
-                
+                await db.collection("iphones").add(phoneData);
                 showFeedback(`¡iPhone ${phoneData.modelo} guardado con éxito!`, 'success');
-
-                // Reiniciar la vista
                 productForm.reset();
                 productForm.classList.add('hidden');
                 btnScan.classList.remove('hidden');
-
             } catch (error) {
                 console.error("Error al añadir el documento: ", error);
                 showFeedback("Hubo un error al guardar los datos.", "error");
+            } finally {
+                // Restaurar el botón a su estado original, ya sea éxito o error
+                btnSubmit.disabled = false;
+                btnSubmitText.textContent = 'Guardar Producto';
+                btnSpinner.classList.add('hidden');
             }
         });
     </script>
