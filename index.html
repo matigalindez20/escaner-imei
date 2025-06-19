@@ -165,197 +165,211 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <script>
-        // --- CONFIGURACIÓN DE FIREBASE (Tus credenciales) ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyAG2rhzDqoy_Iq6DlP0osuJjbrwFEtl6n4",
-            authDomain: "tienda-twins.firebaseapp.com",
-            projectId: "tienda-twins",
-            storageBucket: "tienda-twins.firebasestorage.app",
-            messagingSenderId: "331341386452",
-            appId: "1:331341386452:web:1f0c5257beaaccfcf86141",
-            measurementId: "G-QYLGN5ZWX6"
-        };
+    // --- CONFIGURACIÓN DE FIREBASE (Tus credenciales) ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyAG2rhzDqoy_Iq6DlP0osuJjbrwFEtl6n4",
+        authDomain: "tienda-twins.firebaseapp.com",
+        projectId: "tienda-twins",
+        storageBucket: "tienda-twins.firebasestorage.app",
+        messagingSenderId: "331341386452",
+        appId: "1:331341386452:web:1f0c5257beaaccfcf86141",
+        measurementId: "G-QYLGN5ZWX6"
+    };
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-        // --- REFERENCIAS AL DOM ---
-        const btnScan = document.getElementById('btn-scan');
-        const scannerContainer = document.getElementById('scanner-container');
-        const productForm = document.getElementById('product-form');
-        const imeiInput = document.getElementById('imei');
-        const feedbackMessage = document.getElementById('feedback-message');
-        const btnSubmit = document.getElementById('btn-submit');
-        const btnSubmitText = document.getElementById('btn-submit-text');
-        const btnSpinner = document.getElementById('btn-spinner');
-        const promptContainer = document.getElementById('prompt-container');
+    // --- REFERENCIAS AL DOM ---
+    const btnScan = document.getElementById('btn-scan');
+    const scannerContainer = document.getElementById('scanner-container');
+    const productForm = document.getElementById('product-form');
+    const imeiInput = document.getElementById('imei');
+    const feedbackMessage = document.getElementById('feedback-message');
+    const btnSubmit = document.getElementById('btn-submit');
+    const btnSubmitText = document.getElementById('btn-submit-text');
+    const btnSpinner = document.getElementById('btn-spinner');
+    const promptContainer = document.getElementById('prompt-container');
 
-        // --- FUNCIONES DE UTILIDAD ---
-        function showFeedback(message, type = 'info') {
-            feedbackMessage.textContent = message;
-            feedbackMessage.className = `feedback-message ${type}`;
-            feedbackMessage.classList.remove('hidden');
-        }
+    // --- FUNCIONES DE UTILIDAD ---
+    function showFeedback(message, type = 'info') {
+        feedbackMessage.textContent = message;
+        feedbackMessage.className = `feedback-message ${type}`;
+        feedbackMessage.classList.remove('hidden');
+    }
 
-        function hideFeedback() {
-            feedbackMessage.classList.add('hidden');
-        }
+    function hideFeedback() {
+        feedbackMessage.classList.add('hidden');
+    }
 
-        function resetView() {
-            promptContainer.innerHTML = '';
-            productForm.classList.add('hidden');
-            productForm.reset();
-            btnScan.classList.remove('hidden');
-            scannerContainer.classList.add('hidden');
-            hideFeedback();
-        }
+    function resetView() {
+        promptContainer.innerHTML = '';
+        productForm.classList.add('hidden');
+        productForm.reset();
+        btnScan.classList.remove('hidden');
+        scannerContainer.classList.add('hidden');
+        hideFeedback();
+    }
 
-        // --- LÓGICA DEL ESCÁNER ---
-        const html5QrCode = new Html5Qrcode("scanner-container");
+    // --- LÓGICA DEL ESCÁNER ---
+    const html5QrCode = new Html5Qrcode("scanner-container");
+    const onScanFailure = (error) => { /* Ignorar errores */ };
+    
+    btnScan.addEventListener('click', () => {
+        resetView();
+        btnScan.classList.add('hidden');
+        scannerContainer.classList.remove('hidden');
+        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 150 } }, onScanSuccess, onScanFailure)
+            .catch(err => {
+                showFeedback("Error al iniciar la cámara. Da permisos.", "error");
+                resetView();
+            });
+    });
 
-        const onScanFailure = (error) => { /* Ignorar errores de "no encontrado" */ };
+    // --- FLUJO DESPUÉS DE ESCANEAR ---
+    const onScanSuccess = async (decodedText, decodedResult) => {
+        const imei = decodedText.trim();
         
-        btnScan.addEventListener('click', () => {
-            resetView();
-            btnScan.classList.add('hidden');
-            scannerContainer.classList.remove('hidden');
-            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 150 } }, onScanSuccess, onScanFailure)
-                .catch(err => {
-                    showFeedback("Error al iniciar la cámara. Da permisos.", "error");
-                    resetView();
-                });
-        });
-
-        // ========================================================================
-        //  NUEVO FLUJO DESPUÉS DE ESCANEAR: VERIFICAR IMEI
-        // ========================================================================
-        const onScanSuccess = async (decodedText, decodedResult) => {
-            const imei = decodedText.trim();
-            
-            await html5QrCode.stop();
-            scannerContainer.classList.add('hidden');
-            showFeedback("Buscando IMEI en el inventario...", "loading");
-            
-            try {
-                const imeiRef = db.collection("imei_inventory").doc(imei);
-                const imeiDoc = await imeiRef.get();
-
-                if (imeiDoc.exists) {
-                    hideFeedback();
-                    const { productPath, unitId } = imeiDoc.data();
-                    promptToSell(imei, productPath, unitId);
-                } else {
-                    hideFeedback();
-                    imeiInput.value = imei;
-                    productForm.classList.remove('hidden');
-                    productForm.querySelector('select').focus();
-                }
-            } catch (error) {
-                console.error("Error buscando IMEI:", error);
-                showFeedback("Error al verificar el inventario.", "error");
-                setTimeout(resetView, 3000);
-            }
-        };
-
-        // --- FUNCIÓN PARA MOSTRAR EL PROMPT DE VENTA ---
-        function promptToSell(imei, productPath, unitId) {
-            promptContainer.innerHTML = `
-                <div class="sell-prompt">
-                    <h3>Este equipo ya está en stock</h3>
-                    <p>IMEI: <strong>${imei}</strong></p>
-                    <p>¿Deseas marcarlo como vendido para quitarlo del inventario?</p>
-                    <div class="sell-buttons">
-                        <button id="btn-confirm-sell" class="sell-button confirm">Sí, Marcar como Vendido</button>
-                        <button id="btn-cancel-sell" class="sell-button cancel">Cancelar</button>
-                    </div>
-                </div>
-            `;
-            document.getElementById('btn-confirm-sell').onclick = () => markAsSold(imei, productPath, unitId);
-            document.getElementById('btn-cancel-sell').onclick = resetView;
-        }
+        await html5QrCode.stop();
+        scannerContainer.classList.add('hidden');
+        showFeedback("Buscando IMEI en el inventario...", "loading");
         
-        // --- FUNCIÓN PARA MARCAR COMO VENDIDO (BAJA DE STOCK) ---
-        async function markAsSold(imei, productPath, unitId) {
-            showFeedback("Registrando venta...", "loading");
-            
-            const productRef = db.doc(productPath);
-            const unitRef = productRef.collection("unidades").doc(unitId);
+        try {
             const imeiRef = db.collection("imei_inventory").doc(imei);
+            const imeiDoc = await imeiRef.get();
 
-            try {
-                await db.runTransaction(async (transaction) => {
-                    const productDoc = await transaction.get(productRef);
-                    if (!productDoc.exists) throw "El producto principal no existe.";
-
-                    transaction.delete(unitRef);
-                    transaction.delete(imeiRef);
-                    const newStock = Math.max(0, (productDoc.data().stock || 1) - 1);
-                    transaction.update(productRef, { stock: newStock });
-                });
-                showFeedback(`¡Venta registrada! El equipo ha sido quitado del stock.`, "success");
-            } catch (error) {
-                console.error("Error al marcar como vendido:", error);
-                showFeedback("Error al procesar la venta.", "error");
-            } finally {
-                setTimeout(resetView, 3000);
+            if (imeiDoc.exists) {
+                hideFeedback();
+                const { productPath, unitId } = imeiDoc.data();
+                promptToSell(imei, productPath, unitId);
+            } else {
+                hideFeedback();
+                imeiInput.value = imei;
+                productForm.classList.remove('hidden');
+                productForm.querySelector('select').focus();
             }
+        } catch (error) {
+            console.error("Error buscando IMEI:", error);
+            showFeedback("Error al verificar el inventario.", "error");
+            setTimeout(resetView, 3000);
         }
+    };
 
-        // --- LÓGICA DE GUARDADO (ALTA DE STOCK) ---
-        productForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            btnSubmit.disabled = true;
-            btnSubmitText.textContent = 'Guardando...';
-            btnSpinner.classList.remove('hidden');
+    // --- PROMPT DE VENTA ---
+    function promptToSell(imei, productPath, unitId) {
+        promptContainer.innerHTML = `
+            <div class="sell-prompt">
+                <h3>Este equipo ya está en stock</h3>
+                <p>IMEI: <strong>${imei}</strong></p>
+                <p>¿Deseas marcarlo como vendido para quitarlo del inventario?</p>
+                <div class="sell-buttons">
+                    <button id="btn-confirm-sell" class="sell-button confirm">Sí, Marcar como Vendido</button>
+                    <button id="btn-cancel-sell" class="sell-button cancel">Cancelar</button>
+                </div>
+            </div>
+        `;
+        document.getElementById('btn-confirm-sell').onclick = () => markAsSold(imei, productPath, unitId);
+        document.getElementById('btn-cancel-sell').onclick = resetView;
+    }
+    
+    // --- BAJA DE STOCK ---
+    async function markAsSold(imei, productPath, unitId) {
+        showFeedback("Registrando venta...", "loading");
+        
+        const productRef = db.doc(productPath);
+        const unitRef = productRef.collection("unidades").doc(unitId);
+        const imeiRef = db.collection("imei_inventory").doc(imei);
 
-            const formData = new FormData(productForm);
-            const imei = formData.get('imei');
+        try {
+            await db.runTransaction(async (transaction) => {
+                const productDoc = await transaction.get(productRef);
+                if (!productDoc.exists) throw "El producto principal no existe.";
 
-            const unitData = {
-                imei: imei,
-                bateria: `${formData.get('bateria')}%`,
-                almacenamiento: formData.get('almacenamiento'),
-                detalles: formData.get('detalles'),
-                fechaDeCarga: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            
-            const modelo = formData.get('modelo').toLowerCase().replace(/\s+/g, '-');
-            const color = formData.get('color').toLowerCase().replace(/\s+/g, '-');
-            const productId = `${modelo}-${color}`;
-            const productRef = db.collection("productos").doc(productId);
-            
-            try {
+                transaction.delete(unitRef);
+                transaction.delete(imeiRef);
+                const newStock = Math.max(0, (productDoc.data().stock || 1) - 1);
+                transaction.update(productRef, { stock: newStock });
+            });
+            showFeedback(`¡Venta registrada! El equipo ha sido quitado del stock.`, "success");
+        } catch (error) {
+            console.error("Error al marcar como vendido:", error);
+            showFeedback("Error al procesar la venta.", "error");
+        } finally {
+            setTimeout(resetView, 3000);
+        }
+    }
+
+    // ========================================================================
+    //  LÓGICA DE GUARDADO (ALTA DE STOCK) - ¡CORREGIDA!
+    // ========================================================================
+    productForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        btnSubmit.disabled = true;
+        btnSubmitText.textContent = 'Guardando...';
+        btnSpinner.classList.remove('hidden');
+
+        const formData = new FormData(productForm);
+        const imei = formData.get('imei');
+
+        const unitData = {
+            imei: imei,
+            bateria: `${formData.get('bateria')}%`,
+            almacenamiento: formData.get('almacenamiento'),
+            detalles: formData.get('detalles'),
+            fechaDeCarga: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        const modelo = formData.get('modelo').toLowerCase().replace(/\s+/g, '-');
+        const color = formData.get('color').toLowerCase().replace(/\s+/g, '-');
+        const productId = `${modelo}-${color}`;
+        const productRef = db.collection("productos").doc(productId);
+        
+        try {
+            await db.runTransaction(async (transaction) => {
+                // ===================================
+                //  PASO 1: LECTURAS (READS) PRIMERO
+                // ===================================
+                const productDoc = await transaction.get(productRef);
+
+                // ===================================
+                //  PASO 2: ESCRITURAS (WRITES) DESPUÉS
+                // ===================================
+                
+                // a. Escribimos la nueva unidad
                 const newUnitRef = productRef.collection("unidades").doc();
+                transaction.set(newUnitRef, unitData);
+
+                // b. Escribimos en el índice de IMEIs
                 const imeiRef = db.collection("imei_inventory").doc(imei);
+                transaction.set(imeiRef, { productPath: productRef.path, unitId: newUnitRef.id });
 
-                await db.runTransaction(async (transaction) => {
-                    transaction.set(newUnitRef, unitData);
-                    transaction.set(imeiRef, { productPath: productRef.path, unitId: newUnitRef.id });
+                // c. Escribimos (actualizamos o creamos) el producto maestro
+                if (!productDoc.exists) {
+                    transaction.set(productRef, {
+                        nombre: formData.get('modelo'),
+                        color: formData.get('color'),
+                        stock: 1
+                    });
+                } else {
+                    const newStock = (productDoc.data().stock || 0) + 1;
+                    transaction.update(productRef, { stock: newStock });
+                }
+            });
 
-                    const productDoc = await transaction.get(productRef);
-                    if (!productDoc.exists) {
-                        transaction.set(productRef, {
-                            nombre: formData.get('modelo'),
-                            color: formData.get('color'),
-                            stock: 1
-                        });
-                    } else {
-                        const newStock = (productDoc.data().stock || 0) + 1;
-                        transaction.update(productRef, { stock: newStock });
-                    }
-                });
+            showFeedback(`¡Equipo añadido al inventario!`, 'success');
+            setTimeout(resetView, 2000);
 
-                showFeedback(`¡Equipo añadido al inventario!`, 'success');
-                setTimeout(resetView, 2000);
-            } catch (error) {
-                console.error("Error al guardar:", error);
-                showFeedback("Error al guardar. Revisa la consola.", "error");
-                btnSubmit.disabled = false;
-                btnSubmitText.textContent = 'Guardar Producto';
-                btnSpinner.classList.add('hidden');
-            }
-        });
-    </script>
+        } catch (error) {
+            console.error("Error al guardar:", error);
+            showFeedback("Error al guardar. Revisa la consola.", "error");
+        } finally {
+            // Este bloque se ejecuta siempre, haya error o no.
+            // Aseguramos que el botón se reactive.
+            btnSubmit.disabled = false;
+            btnSubmitText.textContent = 'Guardar Producto';
+            btnSpinner.classList.add('hidden');
+        }
+    });
+</script>
 
 </body>
 </html>
